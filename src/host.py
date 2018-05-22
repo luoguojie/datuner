@@ -47,8 +47,7 @@ elif os.path.exists(pwd + '/quartus.py') and flow == 'quartus':
   # from quartus import top_module as top_module
   from quartus import *
 elif os.path.exists(pwd + '/custom.py') and flow == 'custom':
-  from custom import server_address as server_address
-  from custom import space as space
+  from custom import *
 else:
   print "missing [tool_name].py under current folder"
   sys.exit(1)
@@ -305,7 +304,8 @@ else:
   os.system('cp ' + DATUNER_HOME + '/flows/' + flow + '/* files')
   os.system('cp ' + flow + '.py files')
   os.system('mkdir files/design')
-  os.system('cp -R ' + designdir + '/* files/design')
+  if flow != 'custom':
+    os.system('cp -R ' + designdir + '/* files/design')
   os.system('cd files; zip -r ../package.zip *')
 
   cluster = dispy.JobCluster(tune_function, depends = ['package.zip'])
@@ -314,10 +314,14 @@ else:
   # this can be removed from release code if we assume users manually start dispy
   for i in range(len(machines)):
     machine_addr = machines[i % len(machines)]
-
-    subprocess.call(['scp', os.environ['DATUNER_HOME'] + '/build/pkgs/python/install/bin/dispynode.py', machine_addr + ':' +workspace]);
-    subprocess.Popen(['ssh', machine_addr, 'cd ' + workspace + \
-      '; python dispynode.py --serve 1 --clean --dest_path_prefix dispytmp_' + str(i)])
+    ws_dir = workspace.split('/')
+    last_sp = '~'
+    for sp in ws_dir:
+      last_sp = last_sp + '/' + sp
+      subprocess.call('ssh -i key.rsa ' + machine_addr + ' mkdir ' + last_sp, shell=True)
+    subprocess.call('scp -i key.rsa ' + os.environ['DATUNER_HOME'] + '/build/pkgs/python/install/bin/dispynode.py ' + machine_addr + ':' + workspace, shell=True)
+    subprocess.Popen('ssh -i key.rsa ' + machine_addr + ' "cd ' + workspace + \
+      '; python dispynode.py --serve 1 --clean --dest_path_prefix dispytmp_' + str(i) + '"', shell=True)
 
   # Wait for the last node to be ready
   time.sleep(3)
