@@ -20,8 +20,9 @@ elif os.path.exists(os.getcwd() + '/vivado.py'):
 elif os.path.exists(os.getcwd() + '/quartus.py'):
   from quartus import *
 elif os.path.exists(os.getcwd() + '/custom.py'):
-  from custom import server_address as server_address
-  from custom import space as space
+#  from custom import server_address as server_address
+#  from custom import space as space
+  print 'custom tuner'
 else:
   print "missing [tool_name].py under current folder"
   sys.exit(1)
@@ -34,7 +35,7 @@ class ProgramTuner(ProgramTunerWrapper):
   def manipulator(self):
     manipulator = ConfigurationManipulator()
     for item in self.param:
-      print item
+#      print item
       param_type, param_name, param_range = item
       if param_type == 'EnumParameter':
         manipulator.add_parameter(EnumParameter(param_name, param_range))

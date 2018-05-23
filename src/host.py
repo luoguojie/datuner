@@ -34,6 +34,7 @@ if len(sys.argv) < 2:
   parser.print_help()
   sys.exit(1)
 
+top_module = ''
 if os.path.exists(pwd + '/vtr.py') and flow == 'vtr':
   import vtr
   tool_path = eval(flow + '.tool_path')
@@ -301,15 +302,13 @@ else:
   os.system('rm -rf files')
   os.system('mkdir files')
   os.system('cp ' + DATUNER_HOME + '/src/tune.py files')
-  os.system('cp ' + DATUNER_HOME + '/flows/' + flow + '/* files')
+  os.system('cp -r ' + DATUNER_HOME + '/flows/' + flow + '/* files')
   os.system('cp ' + flow + '.py files')
   os.system('mkdir files/design')
   if flow != 'custom':
     os.system('cp -R ' + designdir + '/* files/design')
   os.system('cd files; zip -r ../package.zip *')
 
-  cluster = dispy.JobCluster(tune_function, depends = ['package.zip'])
-  
   # copy files to and start up dispynode.py on worker machines
   # this can be removed from release code if we assume users manually start dispy
   for i in range(len(machines)):
@@ -318,13 +317,22 @@ else:
     last_sp = '~'
     for sp in ws_dir:
       last_sp = last_sp + '/' + sp
-      subprocess.call('ssh -i key.rsa ' + machine_addr + ' mkdir ' + last_sp, shell=True)
-    subprocess.call('scp -i key.rsa ' + os.environ['DATUNER_HOME'] + '/build/pkgs/python/install/bin/dispynode.py ' + machine_addr + ':' + workspace, shell=True)
-    subprocess.Popen('ssh -i key.rsa ' + machine_addr + ' "cd ' + workspace + \
-      '; python dispynode.py --serve 1 --clean --dest_path_prefix dispytmp_' + str(i) + '"', shell=True)
+      subprocess.call('ssh -i key.rsa ec2-user@' + machine_addr + ' mkdir ' + last_sp, shell=True)
+    subprocess.call('scp -i key.rsa ' + os.environ['DATUNER_HOME'] + '/build/pkgs/python/install/bin/dispynode.py ' + \
+      'ec2-user@' + machine_addr + ':' + workspace, shell=True)
+    subprocess.Popen('ssh -i key.rsa ec2-user@' + machine_addr + ' "cd ' + DATUNER_HOME + ';source setup.sh; cd ~/' + workspace + \
+      '; python dispynode.py --ext_ip_addr ' + machine_addr + \
+      ' --serve 1 --clean --dest_path_prefix dispytmp_' + str(i) + '"', shell=True)
 
   # Wait for the last node to be ready
   time.sleep(3)
+  for machine_addr in machines:
+    subprocess.call('ssh -i key.rsa -R 51347:127.0.0.1:51347 ec2-user@' + machine_addr + ' exit', shell=True)
+
+  cluster = dispy.JobCluster(tune_function, nodes=machines, depends = ['package.zip'], ext_ip_addr='ec2-35-171-20-217.compute-1.amazonaws.com')
+
+  import dispy.httpd
+  http_server = dispy.httpd.DispyHTTPServer(cluster)
 
   runs_per_epoch = 4
   epoch = budget / runs_per_epoch
@@ -340,7 +348,7 @@ else:
       total_search_count += 1
       job = cluster.submit(i, select_space(total_search_count, subspaces, global_result), top_module)
       job.id = i
-      jobs.append(job) 
+      jobs.append(job)
 
     cluster.wait()
 

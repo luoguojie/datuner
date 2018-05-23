@@ -30,8 +30,8 @@ budget = 8
 workspace = 'work/datuner/mm'
 
 machines = [
-    'ec2-user@ec2-35-171-20-217.compute-1.amazonaws.com',
-    'ec2-user@ec2-174-129-60-254.compute-1.amazonaws.com'
+    'ec2-35-171-20-217.compute-1.amazonaws.com',
+    'ec2-174-129-60-254.compute-1.amazonaws.com',
 ]
 
 flow = 'custom'
