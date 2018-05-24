@@ -39,7 +39,7 @@ def calculate_conditional_entropy(target_space, dimension, average_qor, \
           num_good_pts += 1
         else: 
           num_bad_pts += 1
-
+    
     # an empty set of points does not contribute to entropy
     if num_pts == 0:
       continue
@@ -79,9 +79,11 @@ def topo_sort(space_dep, dependency):
         if degree[dep[0]] == 0:
           queue.append(dep[0])
     task = {}
+    task['num'] = t
     task['list'] = space_dep[t]
     task['sum'] = 0
     task['min_entropy'] = 1e9
+    task['min_dimension'] = ''
     task['children'] = children
     tlist.append(task)
   return tlist
@@ -103,6 +105,8 @@ def select_dimension(target_space, global_result, space_dep, dependency):
   # space without dependency
     best_conditional_entropy = 1e9
     for dimension in target_space:
+      if len(dimension[2]) == 1:
+        continue
       conditional_entropy = \
           calculate_conditional_entropy(target_space, dimension, average_qor, \
                                         global_result)
@@ -114,6 +118,8 @@ def select_dimension(target_space, global_result, space_dep, dependency):
   # space with dependency
     tlist = topo_sort(space_dep, dependency)
     for dimension in target_space:
+      if len(dimension[2]) == 1:
+        continue
       conditional_entropy = calculate_conditional_entropy(target_space, dimension, \
                                                           average_qor, global_result)
       task = find_task(dimension[1], tlist)
@@ -121,13 +127,20 @@ def select_dimension(target_space, global_result, space_dep, dependency):
       if conditional_entropy < task['min_entropy']:
         task['min_entropy'] = conditional_entropy
         task['min_dimension'] = dimension[1]
+
     for task in tlist:
       task['avg'] = task['sum'] / len(task['list'])
+      print '[Task] #', task['num'], 'avg entropy:', task['avg'], 'min entropy:', task['min_entropy'],\
+            'min dimension:', task['min_dimension'], 'children:', task['children']
     
     for task in tlist:
       flag = False
       for child in task['children']:
-        if task['avg'] < tlist[child]['avg']:
+        for tsk in tlist:
+          if tsk['num'] == child:
+            child_tsk = tsk
+            break
+        if task['min_entropy'] < child_tsk['min_entropy'] or task['avg'] < child_tsk['avg']:
           flag = True
           break
       if not len(task['children']) or flag:
