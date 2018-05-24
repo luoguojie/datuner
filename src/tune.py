@@ -43,7 +43,10 @@ class ProgramTuner(ProgramTunerWrapper):
 
   def save_final_config(self, configuration):
     """called at the end of tuning"""
-    print "Optimal options written to bench_config.json:", configuration.data
+    if len(configuration.data) < 20:
+      print "Optimal options written to bench_config.json:", configuration.data
+    else:
+      print "Optimal options written to bench_config.json, too long to show"
     self.manipulator().save_to_file(configuration.data, 'inline_config.json')
 
   def dumpresult(self, cfg, res, metadata = []):

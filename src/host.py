@@ -334,6 +334,8 @@ else:
   import dispy.httpd
   http_server = dispy.httpd.DispyHTTPServer(cluster)
 
+  open('global_result.txt','w').close()
+
   runs_per_epoch = 4
   epoch = budget / runs_per_epoch
 
@@ -361,7 +363,7 @@ else:
       cfg_val = []
       for space_iter in space:
         cfg_name = space_iter[1]
-        for i in cfg[0]:
+        for i in cfg:
           if cfg_name == i[0]:
             cfg_val.append(str(i[1]))
             break

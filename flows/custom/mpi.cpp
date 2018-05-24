@@ -1,11 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <mpi.h>
-#include <string.h>
+#include <cstring>
 #include "matrix.h"
 
 double *mat_2D_to_1D(matrix_struct *m) {
-    double *matrix = malloc( (m->rows * m->cols) * sizeof(double) );
+    double *matrix =(double *)malloc( (m->rows * m->cols) * sizeof(double) );
     for (int i = 0; i < m->rows; i++) {
         memcpy( matrix + (i * m->cols), m->mat_data[i], m->cols * sizeof(double) );
     }
@@ -79,10 +79,10 @@ int main(int argc, char *argv[]) {
     
     // allocate memory for 1D-matrices
     if(rank == 0) {
-        final_matrix = malloc( size_res * sizeof(double) );
+        final_matrix = (double *)malloc( size_res * sizeof(double) );
     } else {
-        m_a = malloc( size_a * sizeof(double) );
-        m_b = malloc( size_b * sizeof(double) );
+        m_a = (double *)malloc( size_a * sizeof(double) );
+        m_b = (double *)malloc( size_b * sizeof(double) );
     }
 
     // send 1D matrices to workers
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
     
     /* calculate sub matrices */
     int number_of_rows = size_res / num_worker;
-    double *result_matrix = calloc(number_of_rows, sizeof(double));
+    double *result_matrix = (double *)calloc(number_of_rows, sizeof(double));
 
     int position = 0;
 

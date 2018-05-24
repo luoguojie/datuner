@@ -1,11 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <malloc.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "matrix.h"
 
 matrix_struct *get_matrix_struct(char matrix[]) {
-    matrix_struct *m = malloc(sizeof(matrix_struct));
+    matrix_struct *m = (matrix_struct *)malloc(sizeof(matrix_struct));
     m->rows = 0;
     m->cols = 0;
     FILE* myfile = fopen(matrix, "r");
@@ -33,10 +32,10 @@ matrix_struct *get_matrix_struct(char matrix[]) {
     m->cols++;
     
     // allocate memory for matrix data
-    m->mat_data = calloc(m->rows, sizeof(double*)); 
+    m->mat_data = (double **)calloc(m->rows, sizeof(double*)); 
     int i;
     for(i=0; i < m->rows; ++i)
-        m->mat_data[i]=calloc(m->cols, sizeof(double));
+        m->mat_data[i]=(double *)calloc(m->cols, sizeof(double));
         
     
     rewind(myfile);

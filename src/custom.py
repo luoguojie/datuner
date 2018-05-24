@@ -20,12 +20,13 @@ for line in content:
         else:
             dimension = ['EnumParameter', param, ['on', 'off']]
         space.append(dimension)
+#space = []
 space.append(['EnumParameter', 'O', Oparam])
-space.append(['EnumParameter', 'np', [1, 2, 5, 10, 20, 50]])
+space.append(['EnumParameter', 'np', [1, 2, 4, 5, 10]])
 
 #print space
 
-budget = 8
+budget = 16
 
 workspace = 'work/datuner/mm'
 

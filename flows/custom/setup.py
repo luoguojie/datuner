@@ -32,11 +32,11 @@ class ProgramTunerWrapper(MeasurementInterface):
         except OSError:
             os.mkdir(tmp_dir)
         output_dir = tmp_dir + '/mm_bin'
-        cmd = 'mpicc -o '+ output_dir + ' ' + ' '.join(flags) + ' mpi.c'
+        cmd = 'mpicxx -o '+ output_dir + ' ' + ' '.join(flags) + ' mpi.cpp matrix.cpp'
         print 'compile: '+ cmd
         compile_result = self.call_program(cmd)
         if compile_result['returncode'] != 0:
-            print 'mpicc error: ' + compile_result['stderr']
+            print 'mpicxx error: ' + compile_result['stderr']
             return False
         return True
 
@@ -44,7 +44,7 @@ class ProgramTunerWrapper(MeasurementInterface):
         bin_dir = './tmp/%d/mm_bin' % result_id
         cmd = 'mpirun ' + ' '.join(flags) + ' '+ bin_dir + ' data/matrixa.txt data/matrixb.txt'
         print 'run: ' + cmd
-        run_result = self.call_program(cmt)
+        run_result = self.call_program(cmd)
         if run_result['returncode'] != 0:
             print 'mpirun error ' + run_result['stderr']
             result = 1e9
@@ -57,7 +57,7 @@ class ProgramTunerWrapper(MeasurementInterface):
         result_id = desired_result.id
         ccflags, runflags = self.cfg_to_flags(cfg)
         if self.compile_mpicc(ccflags, result_id):
-            result = run_mpirun(runflags, result_id)
+            result = self.run_mpirun(runflags, result_id)
         else:
             result = 1e9
         self.dumpresult(cfg, result)
