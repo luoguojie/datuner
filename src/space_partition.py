@@ -58,26 +58,82 @@ def calculate_conditional_entropy(target_space, dimension, average_qor, \
 
   return conditional_entropy    
 
-def select_dimension(target_space, global_result):
+def topo_sort(space_dep, dependency):
+# run a topo sort on dependency and return the sorted list
+  n = len(space_dep)
+  degree = [0 for i in range(n)]
+  for dep in dependency:
+    degree[dep[0]] += 1
+  queue = []
+  tlist = []
+  for i in range(n):
+    if degree[i] == 0:
+      queue.append(i)
+  while len(queue):
+    t = queue.pop(0)
+    children = []
+    for dep in dependency:
+      if dep[1] == t:
+        children.append(dep[0])
+        degree[dep[0]] -= 1
+        if degree[dep[0]] == 0:
+          queue.append(dep[0])
+    task = {}
+    task['list'] = space_dep[t]
+    task['sum'] = 0
+    task['min_entropy'] = 1e9
+    task['children'] = children
+    tlist.append(task)
+  return tlist
+
+def find_task(dimension, tlist):
+  for task in tlist:
+    for dim in task['list']:
+      if dimension == dim:
+        return task
+
+def select_dimension(target_space, global_result, space_dep, dependency):
 # return the dimension with the largest information gain
   sum_qor = 0
   for i in global_result:
     sum_qor += i[-1]
   average_qor = float(sum_qor) / len(global_result)
 
-  best_conditional_entropy = 1e9
-  for dimension in target_space:
-    conditional_entropy = \
-        calculate_conditional_entropy(target_space, dimension, average_qor, \
+  if not len(space_dep):
+  # space without dependency
+    best_conditional_entropy = 1e9
+    for dimension in target_space:
+      conditional_entropy = \
+          calculate_conditional_entropy(target_space, dimension, average_qor, \
                                         global_result)
-    if conditional_entropy < best_conditional_entropy:
-      best_conditional_entropy = conditional_entropy
-      target_dimension = dimension[1]
+      if conditional_entropy < best_conditional_entropy:
+        best_conditional_entropy = conditional_entropy
+        target_dimension = dimension[1]
+    return target_dimension
+  else:
+  # space with dependency
+    tlist = topo_sort(space_dep, dependency)
+    for dimension in target_space:
+      conditional_entropy = calculate_conditional_entropy(target_space, dimension, \
+                                                          average_qor, global_result)
+      task = find_task(dimension[1], tlist)
+      task['sum'] += conditional_entropy
+      if conditional_entropy < task['min_entropy']:
+        task['min_entropy'] = conditional_entropy
+        task['min_dimension'] = dimension[1]
+    for task in tlist:
+      task['avg'] = task['sum'] / len(task['list'])
+    
+    for task in tlist:
+      flag = False
+      for child in task['children']:
+        if task['avg'] < tlist[child]['avg']:
+          flag = True
+          break
+      if not len(task['children']) or flag:
+        return task['min_dimension']
 
-  return target_dimension
-
-
-def partition_space(subspaces, global_result):
+def partition_space(subspaces, global_result, space_dep, dependency):
   # select the subspace with the highest score to partition
   best_score = -1e9
   for space_tuple in subspaces:
@@ -85,8 +141,9 @@ def partition_space(subspaces, global_result):
       target_space, best_score, target_freq = space_tuple
       target_space_tuple = space_tuple
 
-  dimension_to_partition = select_dimension(target_space, global_result)
+  dimension_to_partition = select_dimension(target_space, global_result, space_dep, dependency)
 
+  print 'space partition on dimension: ' + dimension_to_partition
   for dimension in target_space:
     if dimension[1] == dimension_to_partition:
       values = dimension[2]

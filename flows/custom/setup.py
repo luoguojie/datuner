@@ -33,22 +33,24 @@ class ProgramTunerWrapper(MeasurementInterface):
             os.mkdir(tmp_dir)
         output_dir = tmp_dir + '/mm_bin'
         cmd = 'mpicxx -o '+ output_dir + ' ' + ' '.join(flags) + ' mpi.cpp matrix.cpp'
-        print 'compile: '+ cmd
+        print 'compiling...'
         compile_result = self.call_program(cmd)
         if compile_result['returncode'] != 0:
             print 'mpicxx error: ' + compile_result['stderr']
             return False
+        print 'compile succeeded'
         return True
 
     def run_mpirun(self, flags, result_id):
         bin_dir = './tmp/%d/mm_bin' % result_id
         cmd = 'mpirun ' + ' '.join(flags) + ' '+ bin_dir + ' data/matrixa.txt data/matrixb.txt'
-        print 'run: ' + cmd
+        print 'running: ' + cmd
         run_result = self.call_program(cmd)
         if run_result['returncode'] != 0:
             print 'mpirun error ' + run_result['stderr']
             result = 1e9
         else:
+            print 'running finished, time: ', run_result['time']
             result = run_result['time']
         return result
 

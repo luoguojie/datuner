@@ -35,6 +35,8 @@ if len(sys.argv) < 2:
   sys.exit(1)
 
 top_module = ''
+space_dep = []
+dependency = []
 if os.path.exists(pwd + '/vtr.py') and flow == 'vtr':
   import vtr
   tool_path = eval(flow + '.tool_path')
@@ -49,6 +51,10 @@ elif os.path.exists(pwd + '/quartus.py') and flow == 'quartus':
   from quartus import *
 elif os.path.exists(pwd + '/custom.py') and flow == 'custom':
   from custom import *
+  if len(space_dep):
+    print 'Space with dependency'
+  else:
+    print 'Space without dependency'
 else:
   print "missing [tool_name].py under current folder"
   sys.exit(1)
@@ -375,7 +381,7 @@ else:
         f.write(','.join(str(i) for i in (cfg + metadata)) + ',' + str(best_res) + '\n')
 
     # send request to host to partition the space
-    partition_space(subspaces, global_result)
+    partition_space(subspaces, global_result, space_dep, dependency)
 
   # terminate the host
   dbconn.close()

@@ -1,4 +1,6 @@
+space_dep = []
 space = []
+task0 = []
 Oparam = []
 file = open('mpiccparams')
 content = file.readlines()
@@ -19,12 +21,21 @@ for line in content:
             continue
         else:
             dimension = ['EnumParameter', param, ['on', 'off']]
+        task0.append(dimension[1])
         space.append(dimension)
 #space = []
+task0.append('O')
 space.append(['EnumParameter', 'O', Oparam])
+space_dep.append(task0)
+space_dep.append([ 'np'])
 space.append(['EnumParameter', 'np', [1, 2, 4, 5, 10]])
 
+dependency = [
+    [1, 0]
+]
+
 #print space
+#print space_dep
 
 budget = 16
 
