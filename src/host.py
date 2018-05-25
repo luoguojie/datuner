@@ -24,8 +24,12 @@ parser.add_argument('-f', '--flow', type=str, dest='tool', choices=['vtr','vivad
 parser.add_argument('-b', '--budget', type=int, default=1, dest='limit')
 parser.add_argument('-t', '--timeout', type=str, default='0.0d:0.0h:0.0m:7200.0s', dest='stop', help='format: 4d:2h:5m:9s')
 parser.add_argument('-p', '--parallel', type=int, default=1, dest='pf')
+parser.add_argument('-o', '--result-output', type=str, default='global_result.txt', dest='output')
+parser.add_argument('-s', '--space-discover-output', type=str, default='space_discover.txt', dest='space_output')
 args = parser.parse_args()
 
+output_file = args.output
+space_file = args.space_output
 flow = args.tool
 budget = args.limit
 proc_num = args.pf
@@ -37,6 +41,7 @@ if len(sys.argv) < 2:
 top_module = ''
 space_dep = []
 dependency = []
+runs_per_epoch = 4
 if os.path.exists(pwd + '/vtr.py') and flow == 'vtr':
   import vtr
   tool_path = eval(flow + '.tool_path')
@@ -335,14 +340,15 @@ else:
   for machine_addr in machines:
     subprocess.call('ssh -i key.rsa -R 51347:127.0.0.1:51347 ec2-user@' + machine_addr + ' exit', shell=True)
 
-  cluster = dispy.JobCluster(tune_function, nodes=machines, depends = ['package.zip'], ext_ip_addr='ec2-35-171-20-217.compute-1.amazonaws.com')
+  cluster = dispy.JobCluster(tune_function, nodes=machines, depends = ['package.zip'], ext_ip_addr='ec2-34-207-243-87.compute-1.amazonaws.com')
 
   import dispy.httpd
   http_server = dispy.httpd.DispyHTTPServer(cluster)
 
-  open('global_result.txt','w').close()
+  open(output_file,'w').close()
+  open(space_file, 'w').close()
 
-  runs_per_epoch = 4
+  #runs_per_epoch = 4
   epoch = budget / runs_per_epoch
 
   # add the initial space and a score of 0 and a frequency of 1
@@ -352,7 +358,7 @@ else:
 
   for e in range(epoch):
     jobs = []
-    for i in range(budget/epoch):
+    for i in range(runs_per_epoch):
       total_search_count += 1
       job = cluster.submit(i, select_space(total_search_count, subspaces, global_result), top_module)
       job.id = i
@@ -377,11 +383,11 @@ else:
       # OperationalError: near "on": syntax error
       # dbcursor.execute('INSERT INTO res VALUES (' + ','.join(cfg_val) + ',' + str(res) + ')')
       # dbconn.commit()
-      with open("global_result.txt", "a") as f:
+      with open(output_file, "a") as f:
         f.write(','.join(str(i) for i in (cfg + metadata)) + ',' + str(best_res) + '\n')
 
     # send request to host to partition the space
-    partition_space(subspaces, global_result, space_dep, dependency)
+    partition_space(subspaces, global_result, space_dep, dependency, space_file)
 
   # terminate the host
   dbconn.close()

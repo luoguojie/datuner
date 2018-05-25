@@ -39,7 +39,10 @@ def calculate_conditional_entropy(target_space, dimension, average_qor, \
           num_good_pts += 1
         else: 
           num_bad_pts += 1
-    
+
+    #if dimension[1] == 'O':
+    #  print 'O=', value, 'num_pts:', num_pts, 'good_pts:', num_good_pts
+     
     # an empty set of points does not contribute to entropy
     if num_pts == 0:
       continue
@@ -96,10 +99,18 @@ def find_task(dimension, tlist):
 
 def select_dimension(target_space, global_result, space_dep, dependency):
 # return the dimension with the largest information gain
+  
+#  print 'global_results:'
+#  for i in global_result:
+#    print i[-1]
+
   sum_qor = 0
+  num_pts = 0
   for i in global_result:
-    sum_qor += i[-1]
-  average_qor = float(sum_qor) / len(global_result)
+    if check_design_point_in_space(i, target_space):
+      sum_qor += i[-1]
+      num_pts += 1
+  average_qor = float(sum_qor) / num_pts
 
   if not len(space_dep):
   # space without dependency
@@ -123,6 +134,7 @@ def select_dimension(target_space, global_result, space_dep, dependency):
       conditional_entropy = calculate_conditional_entropy(target_space, dimension, \
                                                           average_qor, global_result)
       task = find_task(dimension[1], tlist)
+      #print '[sp]dimension:', dimension[1], 'entropy:', conditional_entropy
       task['sum'] += conditional_entropy
       if conditional_entropy < task['min_entropy']:
         task['min_entropy'] = conditional_entropy
@@ -140,13 +152,13 @@ def select_dimension(target_space, global_result, space_dep, dependency):
           if tsk['num'] == child:
             child_tsk = tsk
             break
-        if task['min_entropy'] < child_tsk['min_entropy'] or task['avg'] < child_tsk['avg']:
+        if task['min_entropy'] <= child_tsk['min_entropy'] or task['avg'] <= child_tsk['avg']:
           flag = True
           break
       if not len(task['children']) or flag:
         return task['min_dimension']
 
-def partition_space(subspaces, global_result, space_dep, dependency):
+def partition_space(subspaces, global_result, space_dep, dependency, output_file):
   # select the subspace with the highest score to partition
   best_score = -1e9
   for space_tuple in subspaces:
@@ -156,7 +168,9 @@ def partition_space(subspaces, global_result, space_dep, dependency):
 
   dimension_to_partition = select_dimension(target_space, global_result, space_dep, dependency)
 
-  print 'space partition on dimension: ' + dimension_to_partition
+  with open(output_file,'a') as f:
+    f.write('dimension: ' + dimension_to_partition + '\n')
+    print 'space partition on dimension: ' + dimension_to_partition
   for dimension in target_space:
     if dimension[1] == dimension_to_partition:
       values = dimension[2]

@@ -37,15 +37,21 @@ dependency = [
 #print space
 #print space_dep
 
-budget = 16
+# budget is the total search iterations
+budget = 32
 
+# runs_per_epoch is the run points per epoch
+runs_per_epoch = 8
+
+# workspace is a relative directory from ~/
 workspace = 'work/datuner/mm'
 
+# list machine address here, without user name
 machines = [
-    'ec2-35-171-20-217.compute-1.amazonaws.com',
-    'ec2-174-129-60-254.compute-1.amazonaws.com',
+    'ec2-54-198-244-169.compute-1.amazonaws.com',
+    'ec2-18-207-123-165.compute-1.amazonaws.com',
 ]
 
+# flow name should equal to directory under flows/
 flow = 'custom'
 
-server_address = ('127.0.0.1', 10026)
