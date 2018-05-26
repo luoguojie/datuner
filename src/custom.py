@@ -1,57 +1,52 @@
-space_dep = []
-space = []
-task0 = []
-Oparam = []
-file = open('mpiccparams')
-content = file.readlines()
-for line in content:
-    params = line.strip('\n').strip(' ').split(' ')
-    for param in params:
-        if not param.startswith('-'):
-            continue
-        param = param.replace('-', '_')[1:]
-        if param.endswith('[=n]'):
-            param = param.rstrip('[=n]')
-            dimension = ['EnumParameter', param, range(10)]
-        elif param.endswith('=n'):
-            param = param.rstrip('=n')
-            dimension = ['EnumParameter', param, range(10)]
-        elif param.startswith('O'):
-            Oparam.append(param.lstrip('O'))
-            continue
-        else:
-            dimension = ['EnumParameter', param, ['on', 'off']]
-        task0.append(dimension[1])
-        space.append(dimension)
-#space = []
-task0.append('O')
-space.append(['EnumParameter', 'O', Oparam])
-space_dep.append(task0)
-space_dep.append([ 'np'])
-space.append(['EnumParameter', 'np', [1, 2, 4, 5, 10]])
+space = [
+    ['EnumParameter', 'connection_driven_clustering', ['on', 'off']],
+    ['EnumParameter', 'allow_unrelated_clustering', ['on', 'off']],
+    ['EnumParameter', 'alpha_clustering', [0.0, 0.25, 0.5 , 0.75, 1.0]],
+    ['EnumParameter', 'beta_clustering', [0.0, 0.25, 0.5 , 0.75, 1.0]],
+    ['EnumParameter', 'cluster_seed_type', ['blend', 'timing', 'max_inputs']],
+
+    ['EnumParameter', 'inner_num', [0.8, 1.0, 1.2]],
+    ['EnumParameter', 'init_t', [50.0, 100.0, 150.0]],
+    ['EnumParameter', 'exit_t', [0.005, 0.01, 0.02, 0.05]],
+    ['EnumParameter', 'alpha_t', [0.005, 0.01, 0.02, 0.05]],
+    ['EnumParameter', 'place_chan_width', [80, 100, 120]],
+
+    ['EnumParameter', 'first_iter_pres_fac', [0.0, 0.25, 0.5, 0.75]],
+    ['EnumParameter', 'initial_pres_fac', [0.25, 0.5, 0.75, 1.0]],
+    ['EnumParameter', 'pres_fac_mult', [1.0, 1.3, 1.5]],
+    ['EnumParameter', 'acc_fac', [0.75, 1.0, 1.25]],
+    ['EnumParameter', 'bb_factor', [2, 3, 4]],
+    ['EnumParameter', 'base_cost_type', ['demand_only', 'delay_normalized']],
+    ['EnumParameter', 'bend_cost', [0.0, 0.25, 0.5, 0.75]],
+    ['EnumParameter', 'min_incremental_reroute_fanout', [56, 64, 72]],
+]
+
+space_dep = [
+    ['connection_driven_clustering', 'allow_unrelated_clustering', 'alpha_clustering',
+        'beta_clustering', 'cluster_seed_type'],
+    ['inner_num', 'init_t', 'exit_t', 'alpha_t', 'place_chan_width', ],
+    ['first_iter_pres_fac', 'initial_pres_fac', 'pres_fac_mult', 'acc_fac', 'bb_factor', 
+        'base_cost_type', 'bend_cost', 'min_incremental_reroute_fanout', ]
+]
 
 dependency = [
-    [1, 0]
+    [1, 0],
+    [2, 1],
 ]
 
-#print space
-#print space_dep
+budget = 20
 
-# budget is the total search iterations
-budget = 32
+runs_per_epoch = 4
 
-# runs_per_epoch is the run points per epoch
-runs_per_epoch = 8
+workspace = 'work/datuner/vpr'
 
-# workspace is a relative directory from ~/
-workspace = 'work/datuner/mm'
-
-# list machine address here, without user name
 machines = [
-    'ec2-54-198-244-169.compute-1.amazonaws.com',
-    'ec2-18-207-123-165.compute-1.amazonaws.com',
+    'ec2-18-207-195-25.compute-1.amazonaws.com',
+    'ec2-52-87-150-239.compute-1.amazonaws.com',
+    'ec2-34-201-46-137.compute-1.amazonaws.com',
+    'ec2-54-165-46-215.compute-1.amazonaws.com',
 ]
 
-# flow name should equal to directory under flows/
-flow = 'custom'
+remote_user = 'ubuntu'
 
+flow = 'custom'

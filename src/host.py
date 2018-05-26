@@ -325,15 +325,17 @@ else:
   for i in range(len(machines)):
     machine_addr = machines[i % len(machines)]
     ws_dir = workspace.split('/')
-    last_sp = '~'
+    last_sp = '/home/' + remote_user
     for sp in ws_dir:
       last_sp = last_sp + '/' + sp
       subprocess.call('ssh -i key.rsa '+ remote_user + '@' + machine_addr + ' mkdir ' + last_sp, shell=True)
+    
     subprocess.call('scp -i key.rsa ' + os.environ['DATUNER_HOME'] + '/build/pkgs/python/install/bin/dispynode.py ' + \
-      + remote_user + '@' + machine_addr + ':' + workspace, shell=True)
-    subprocess.Popen('ssh -i key.rsa ' + remote_user + '@' + machine_addr + ' "cd ' + DATUNER_HOME + ';source setup.sh; cd ~/' + workspace + \
-      '; python dispynode.py --ext_ip_addr ' + machine_addr + \
-      ' --serve 1 --clean --dest_path_prefix dispytmp_' + str(i) + '"', shell=True)
+        remote_user + '@' + machine_addr + ':' + workspace, shell=True)
+    subprocess.Popen('ssh -i key.rsa ' + remote_user + '@' + machine_addr + ' "cd /home/' + remote_user + '/datuner/' +\
+        ';source setup.sh; cd ~/' + workspace + \
+        '; python dispynode.py --ext_ip_addr ' + machine_addr + \
+        ' --serve 1 --clean --dest_path_prefix dispytmp_' + str(i) + '"', shell=True)
 
   # Wait for the last node to be ready
   time.sleep(3)

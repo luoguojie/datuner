@@ -86,7 +86,9 @@ def topo_sort(space_dep, dependency):
     task['list'] = space_dep[t]
     task['sum'] = 0
     task['min_entropy'] = 1e9
+    task['avg'] = 1e9
     task['min_dimension'] = ''
+    task['valid_dimension'] = 0
     task['children'] = children
     tlist.append(task)
   return tlist
@@ -136,12 +138,14 @@ def select_dimension(target_space, global_result, space_dep, dependency):
       task = find_task(dimension[1], tlist)
       #print '[sp]dimension:', dimension[1], 'entropy:', conditional_entropy
       task['sum'] += conditional_entropy
+      task['valid_dimension'] += 1
       if conditional_entropy < task['min_entropy']:
         task['min_entropy'] = conditional_entropy
         task['min_dimension'] = dimension[1]
 
     for task in tlist:
-      task['avg'] = task['sum'] / len(task['list'])
+      if task['valid_dimension'] > 0:
+        task['avg'] = task['sum'] / task['valid_dimension']
       print '[Task] #', task['num'], 'avg entropy:', task['avg'], 'min entropy:', task['min_entropy'],\
             'min dimension:', task['min_dimension'], 'children:', task['children']
     
