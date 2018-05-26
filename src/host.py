@@ -328,17 +328,17 @@ else:
     last_sp = '~'
     for sp in ws_dir:
       last_sp = last_sp + '/' + sp
-      subprocess.call('ssh -i key.rsa ec2-user@' + machine_addr + ' mkdir ' + last_sp, shell=True)
+      subprocess.call('ssh -i key.rsa '+ remote_user + '@' + machine_addr + ' mkdir ' + last_sp, shell=True)
     subprocess.call('scp -i key.rsa ' + os.environ['DATUNER_HOME'] + '/build/pkgs/python/install/bin/dispynode.py ' + \
-      'ec2-user@' + machine_addr + ':' + workspace, shell=True)
-    subprocess.Popen('ssh -i key.rsa ec2-user@' + machine_addr + ' "cd ' + DATUNER_HOME + ';source setup.sh; cd ~/' + workspace + \
+      + remote_user + '@' + machine_addr + ':' + workspace, shell=True)
+    subprocess.Popen('ssh -i key.rsa ' + remote_user + '@' + machine_addr + ' "cd ' + DATUNER_HOME + ';source setup.sh; cd ~/' + workspace + \
       '; python dispynode.py --ext_ip_addr ' + machine_addr + \
       ' --serve 1 --clean --dest_path_prefix dispytmp_' + str(i) + '"', shell=True)
 
   # Wait for the last node to be ready
   time.sleep(3)
   for machine_addr in machines:
-    subprocess.call('ssh -i key.rsa -R 51347:127.0.0.1:51347 ec2-user@' + machine_addr + ' exit', shell=True)
+    subprocess.call('ssh -i key.rsa -R 51347:127.0.0.1:51347 ' + remote_user + '@' + machine_addr + ' exit', shell=True)
 
   cluster = dispy.JobCluster(tune_function, nodes=machines, depends = ['package.zip'], ext_ip_addr='ec2-34-207-243-87.compute-1.amazonaws.com')
 
